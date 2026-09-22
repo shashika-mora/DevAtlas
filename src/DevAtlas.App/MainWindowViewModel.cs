@@ -11,6 +11,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly SqliteWorkspaceStore _store;
     private readonly FileSystemProjectDiscovery _discovery;
     private readonly ProcessGitReader _git;
+    private readonly SemaphoreSlim _scanLock = new(1, 1);
 
     [ObservableProperty] private string searchText = string.Empty;
     [ObservableProperty] private bool isBusy;
@@ -31,7 +32,7 @@ public partial class MainWindowViewModel : ObservableObject
         _store = store;
         _discovery = discovery;
         _git = git;
-        _ = LoadAsync();
+        _ = InitializeAsync();
     }
 
     partial void OnSearchTextChanged(string value) => OnPropertyChanged(nameof(FilteredProjects));
@@ -45,35 +46,74 @@ public partial class MainWindowViewModel : ObservableObject
         {
             await RescanCoreAsync();
         }
+        catch (IOException ex)
+        {
+            StatusMessage = $"Rescan failed: {ex.Message}";
+        }
+        catch (InvalidOperationException ex)
+        {
+            StatusMessage = $"Rescan failed: {ex.Message}";
+        }
         finally
         {
             IsBusy = false;
         }
     }
 
+    private async Task InitializeAsync()
+    {
+        try
+        {
+            await LoadAsync();
+        }
+        catch (IOException ex)
+        {
+            StatusMessage = $"Startup failed: {ex.Message}";
+        }
+        catch (InvalidOperationException ex)
+        {
+            StatusMessage = $"Startup failed: {ex.Message}";
+        }
+    }
+
     private async Task RescanCoreAsync()
     {
+        await _scanLock.WaitAsync();
         StatusMessage = "Scanning workspace roots…";
-        Projects.Clear();
-        foreach (var root in Roots)
+        try
         {
-            await foreach (var project in _discovery.DiscoverAsync([root]))
+            Projects.Clear();
+            foreach (var root in Roots)
             {
-                var git = await _git.ReadAsync(project.Path);
-                var enriched = project with
+                await foreach (var project in _discovery.DiscoverAsync([root]))
                 {
-                    CurrentBranch = git.Branch,
-                    ChangedFileCount = git.ChangedFileCount,
-                    LastWorkedAt = DateTimeOffset.Now
-                };
-                await _store.SaveAsync(enriched);
-                Projects.Add(new ProjectCard(enriched));
+                    try
+                    {
+                        var git = await _git.ReadAsync(project.Path);
+                        var enriched = project with
+                        {
+                            CurrentBranch = git.Branch,
+                            ChangedFileCount = git.ChangedFileCount,
+                            LastWorkedAt = DateTimeOffset.Now
+                        };
+                        await _store.SaveAsync(enriched);
+                        Projects.Add(new ProjectCard(enriched));
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        StatusMessage = $"Could not inspect {project.Name}: {ex.Message}";
+                    }
+                }
             }
+            OnPropertyChanged(nameof(ModifiedCount));
+            OnPropertyChanged(nameof(FilteredProjects));
+            OnPropertyChanged(nameof(HasNoProjects));
+            StatusMessage = $"{Projects.Count} projects discovered.";
         }
-        OnPropertyChanged(nameof(ModifiedCount));
-        OnPropertyChanged(nameof(FilteredProjects));
-        OnPropertyChanged(nameof(HasNoProjects));
-        StatusMessage = $"{Projects.Count} projects discovered.";
+        finally
+        {
+            _scanLock.Release();
+        }
     }
 
     public async Task AddRootAsync(string path)

@@ -24,6 +24,9 @@ public sealed class ProcessGitReader : IGitReader
         IReadOnlyList<string> arguments,
         CancellationToken cancellationToken)
     {
+        var configDirectory = Directory.CreateTempSubdirectory("devatlas-git-");
+        var globalConfig = Path.Combine(configDirectory.FullName, "global.gitconfig");
+        await File.WriteAllTextAsync(globalConfig, string.Empty, cancellationToken);
         using var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -36,26 +39,44 @@ public sealed class ProcessGitReader : IGitReader
                 CreateNoWindow = true
             }
         };
-        process.StartInfo.ArgumentList.Add("-c");
-        process.StartInfo.ArgumentList.Add("core.fsmonitor=false");
-        process.StartInfo.ArgumentList.Add("-c");
-        process.StartInfo.ArgumentList.Add("diff.external=");
-        process.StartInfo.ArgumentList.Add("-c");
-        process.StartInfo.ArgumentList.Add("filter.lfs.process=");
-        process.StartInfo.ArgumentList.Add("-c");
-        process.StartInfo.ArgumentList.Add("filter.lfs.clean=");
-        process.StartInfo.ArgumentList.Add("-c");
-        process.StartInfo.ArgumentList.Add("filter.lfs.smudge=");
-        process.StartInfo.ArgumentList.Add("-c");
-        process.StartInfo.ArgumentList.Add("filter.lfs.required=false");
-        foreach (var argument in arguments)
-            process.StartInfo.ArgumentList.Add(argument);
-        process.StartInfo.Environment["GIT_CONFIG_NOSYSTEM"] = "1";
-        process.StartInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
-        process.StartInfo.Environment["GIT_OPTIONAL_LOCKS"] = "0";
-        process.Start();
-        var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
-        return process.ExitCode == 0 ? output : string.Empty;
+        try
+        {
+            process.StartInfo.ArgumentList.Add("-c");
+            process.StartInfo.ArgumentList.Add($"core.hooksPath={configDirectory.FullName}");
+            process.StartInfo.ArgumentList.Add("-c");
+            process.StartInfo.ArgumentList.Add("core.fsmonitor=false");
+            process.StartInfo.ArgumentList.Add("-c");
+            process.StartInfo.ArgumentList.Add("diff.external=");
+            process.StartInfo.ArgumentList.Add("-c");
+            process.StartInfo.ArgumentList.Add("filter.lfs.process=");
+            process.StartInfo.ArgumentList.Add("-c");
+            process.StartInfo.ArgumentList.Add("filter.lfs.clean=");
+            process.StartInfo.ArgumentList.Add("-c");
+            process.StartInfo.ArgumentList.Add("filter.lfs.smudge=");
+            process.StartInfo.ArgumentList.Add("-c");
+            process.StartInfo.ArgumentList.Add("filter.lfs.required=false");
+            foreach (var argument in arguments)
+                process.StartInfo.ArgumentList.Add(argument);
+            process.StartInfo.Environment["GIT_CONFIG_NOSYSTEM"] = "1";
+            process.StartInfo.Environment["GIT_CONFIG_GLOBAL"] = globalConfig;
+            process.StartInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
+            process.StartInfo.Environment["GIT_OPTIONAL_LOCKS"] = "0";
+            process.Start();
+            var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+            var error = await process.StandardError.ReadToEndAsync(cancellationToken);
+            await process.WaitForExitAsync(cancellationToken);
+            if (process.ExitCode != 0)
+                throw new InvalidOperationException($"Git {string.Join(' ', arguments)} failed: {error.Trim()}");
+            return output;
+        }
+        finally
+        {
+            try
+            {
+                configDirectory.Delete(true);
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
     }
 }

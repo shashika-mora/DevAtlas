@@ -56,6 +56,17 @@ public sealed class FileSystemProjectDiscovery : IProjectDiscovery
 
     private static IEnumerable<string> EnumerateDirectories(string root, CancellationToken cancellationToken)
     {
+        DirectoryInfo rootInfo;
+        try
+        {
+            rootInfo = new DirectoryInfo(root);
+            if (rootInfo.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                yield break;
+        }
+        catch (UnauthorizedAccessException) { yield break; }
+        catch (DirectoryNotFoundException) { yield break; }
+        catch (IOException) { yield break; }
+
         var pending = new Stack<string>();
         pending.Push(root);
         while (pending.Count > 0)
@@ -69,8 +80,18 @@ public sealed class FileSystemProjectDiscovery : IProjectDiscovery
             catch (DirectoryNotFoundException) { continue; }
             foreach (var child in children)
             {
-                if (!IgnoredDirectories.Contains(Path.GetFileName(child), StringComparer.OrdinalIgnoreCase))
-                    pending.Push(child);
+                try
+                {
+                    var childInfo = new DirectoryInfo(child);
+                    if (!childInfo.Attributes.HasFlag(FileAttributes.ReparsePoint)
+                        && !IgnoredDirectories.Contains(childInfo.Name, StringComparer.OrdinalIgnoreCase))
+                    {
+                        pending.Push(childInfo.FullName);
+                    }
+                }
+                catch (UnauthorizedAccessException) { }
+                catch (DirectoryNotFoundException) { }
+                catch (IOException) { }
             }
         }
     }

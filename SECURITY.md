@@ -10,8 +10,8 @@ A focused review of the current discovery and Git implementation identified two 
 
 | Severity | Area | Status |
 |---|---|---|
-| High | Git inspection may honor repository-controlled Git helpers such as `core.fsmonitor` | Open |
-| Medium | Discovery may follow directory links/reparse points outside the selected workspace root | Open |
+| High | Git inspection may honor repository-controlled Git helpers such as `core.fsmonitor` | Fixed in `14556b4` and hardened again in the current audit |
+| Medium | Discovery may follow directory links/reparse points outside the selected workspace root | Fixed in the current audit |
 
 No hardcoded credentials, repository-content uploads, or obvious network exfiltration were found in the reviewed code. This is not a security certification.
 
@@ -35,4 +35,4 @@ Reports should be acknowledged, reproduced, fixed, and disclosed responsibly. Se
 
 ## Release gate
 
-Before a production release, the open findings above must be closed or explicitly accepted by a maintainer with a documented mitigation. Dependency review, secret scanning, static analysis, and tests for path containment and process isolation are required release checks.
+Before a production release, dependency review, secret scanning, static analysis, and regression tests for path containment and process isolation are required release checks.
