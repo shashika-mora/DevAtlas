@@ -31,14 +31,14 @@
             <Button Content="Rescan workspace" Command="{Binding RescanCommand}" Padding="18,10"/>
           </StackPanel>
         </Grid>
-        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="14">
-          <Border Background="#172033" CornerRadius="8" Padding="18">
+        <Grid ColumnDefinitions="*,*,*,*">
+          <Border Background="#172033" CornerRadius="8" Padding="18" Margin="0,0,14,0">
             <StackPanel><TextBlock Text="Projects" Foreground="#94A3B8"/><TextBlock Text="{Binding Projects.Count}" FontSize="28" FontWeight="Bold" Foreground="#F8FAFC"/></StackPanel>
           </Border>
-          <Border Grid.Column="1" Background="#172033" CornerRadius="8" Padding="18">
+          <Border Grid.Column="1" Background="#172033" CornerRadius="8" Padding="18" Margin="0,0,14,0">
             <StackPanel><TextBlock Text="Modified" Foreground="#94A3B8"/><TextBlock Text="{Binding ModifiedCount}" FontSize="28" FontWeight="Bold" Foreground="#FBBF24"/></StackPanel>
           </Border>
-          <Border Grid.Column="2" Background="#172033" CornerRadius="8" Padding="18">
+          <Border Grid.Column="2" Background="#172033" CornerRadius="8" Padding="18" Margin="0,0,14,0">
             <StackPanel><TextBlock Text="Workspace roots" Foreground="#94A3B8"/><TextBlock Text="{Binding Roots.Count}" FontSize="28" FontWeight="Bold" Foreground="#7DD3FC"/></StackPanel>
           </Border>
           <Border Grid.Column="3" Background="#172033" CornerRadius="8" Padding="18">
@@ -64,7 +64,7 @@
                     </StackPanel>
                   </StackPanel>
                   <Border Grid.Column="1" Background="#422006" CornerRadius="12" Padding="10,5" IsVisible="{Binding HasChanges}">
-                    <TextBlock Text="{Binding ChangedFileCount, StringFormat='{0} modified'}" Foreground="#FBBF24"/>
+                    <TextBlock Text="{Binding ChangedFileCount, StringFormat='{}{0} modified'}" Foreground="#FBBF24"/>
                   </Border>
                 </Grid>
               </Border>
