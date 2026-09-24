@@ -21,9 +21,9 @@ public sealed class ProjectDiscoveryTests
             await foreach (var project in discovery.DiscoverAsync([new WorkspaceRoot(Guid.NewGuid(), root.FullName)]))
                 projects.Add(project);
 
-            var project = Assert.Single(projects);
-            Assert.Equal("Node.js", project.ProjectType);
-            Assert.Equal("JavaScript/TypeScript", project.Language);
+            var discoveredProject = Assert.Single(projects);
+            Assert.Equal("Node.js", discoveredProject.ProjectType);
+            Assert.Equal("JavaScript/TypeScript", discoveredProject.Language);
         }
         finally { root.Delete(true); }
     }
