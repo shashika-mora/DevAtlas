@@ -1,5 +1,6 @@
 using DevAtlas.Domain;
 using DevAtlas.Infrastructure;
+using Xunit;
 
 namespace DevAtlas.Tests;
 
