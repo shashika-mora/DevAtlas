@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DevAtlas.App;
 
-public partial class App : Application
+public partial class App : Avalonia.Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
