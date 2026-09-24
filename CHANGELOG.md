@@ -17,6 +17,9 @@ All notable changes to DevAtlas will be documented here.
 
 ### Known limitations
 
-- The current Git inspection path still needs isolation from repository-controlled Git helpers.
-- Discovery still needs explicit reparse-point containment protection.
 - The .NET SDK must be installed before restore, build, and test validation can run.
+
+### Security
+
+- Git metadata inspection now uses a sanitized configuration and environment, disables repository-controlled helpers, and reports Git failures.
+- Discovery skips symbolic links, junctions, and other reparse points so scans remain within selected filesystem roots.
