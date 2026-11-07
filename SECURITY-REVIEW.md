@@ -1,67 +1,25 @@
-# Security review
+# Security and reliability review
 
-**Review date:** 2026-09-22  
-**Scope:** DevAtlas source, project files, CI configuration, dependency declarations, and local process/filesystem integrations.
+Review date: 2026-11-07. Scope: the 0.1.0 discovery preview, process/filesystem boundaries, persistence, tests, and release packaging.
 
-## Executive summary
+## Implemented controls
 
-The review found two local attack paths. Both have been fixed:
+- Git uses an absolute executable resolved from absolute PATH entries, structured arguments, a restricted environment, empty global configuration, disabled system configuration, and disabled prompts/optional locks/lazy network fetches.
+- Inspection overrides hooks, fsmonitor, external diff, signature verification, automatic maintenance, submodule traversal, and every configured clean/smudge/process filter name, including custom filter names.
+- Both redirected streams are drained concurrently with bounded output. Each invocation has a deadline; cancellation terminates the owned process tree and waits for exit.
+- Discovery runs off the UI thread, checks directory reparse points on visitation, excludes tool/dependency folders, and contains enumeration error handling.
+- SQLite uses parameterized commands and a connection-string builder. Operations run on background workers with serialized access and per-operation connections. Schema upgrade and scan reconciliation are transactional.
+- Incomplete/cancelled scans do not discard existing metadata. Missing projects are hidden only after complete coverage; identity and favorites survive rediscovery.
+- Local diagnostics record error types rather than raw Git output, environment values, exception messages, or source contents. Logs rotate and remain local.
 
-1. Git metadata inspection could honor repository-controlled helpers when reading an attacker-controlled repository.
-2. Discovery could follow symbolic links, junctions, or other reparse points outside a selected workspace root.
+## Verification
 
-No hardcoded credentials, obvious secret leakage, authentication or authorization subsystem, network service, or known dependency vulnerability was found in the reviewed code. Dependency advisories still need to run in CI once the .NET SDK is available.
+Regression tests cover configured Git helpers, inherited Git directory redirection, linked worktrees, empty repositories, detached HEAD, rename/Unicode parsing, cancellation/deadlines, directory-link boundaries, exclusions, identity, favorites, missing and returning projects, unavailable roots, schema upgrade, and view-model state.
 
-## Findings
+Exact release commands and results are recorded in `docs/RELEASE-0.1.0.md`. Dependency advisories are checked against the resolved direct/transitive graph. This is engineering evidence, not a security certification.
 
-| # | Severity | Location | Finding | Status |
-|---|---|---|---|---|
-| 1 | High | `src/DevAtlas.Infrastructure/GitReader.cs` | Git was launched against user-selected repositories without fully isolating repository-controlled helpers. A malicious repository could use Git configuration such as `core.fsmonitor`, external diff, or filters to execute code during an automatic scan. | Fixed |
-| 2 | Medium | `src/DevAtlas.Infrastructure/ProjectDiscovery.cs` | Directory traversal did not reject reparse points. A junction or symlink inside a selected root could cause discovery and Git inspection outside the approved boundary. | Fixed |
+## Remaining boundaries
 
-## Remediation details
+Git still runs as the current user; it is not an OS sandbox. Filesystem checks cannot prevent all races when another process deliberately replaces directories during inspection. Select local repositories you trust enough to inspect. Git snapshots can change between subprocesses. Output above the inspection cap becomes a visible warning rather than an unbounded memory allocation.
 
-### Git helper execution
-
-`ProcessGitReader` now:
-
-- passes arguments through `ProcessStartInfo.ArgumentList`;
-- disables system and global Git configuration;
-- provides an empty temporary global configuration;
-- disables hooks, filesystem monitors, external diff, and LFS filter processes;
-- disables interactive prompts and optional locks;
-- reports non-zero Git exit codes and stderr instead of treating failures as empty metadata;
-- removes temporary configuration files after each invocation.
-
-The application still runs Git as the current user. This is not an OS sandbox; future releases should consider a stronger isolation boundary for processing repositories that are not trusted by the user.
-
-### Filesystem containment
-
-The discovery engine now treats reparse points as scan boundaries and skips them before adding child directories to the traversal queue. This prevents the ordinary discovery walk from following Windows junctions or symbolic links outside the selected root.
-
-## Other bugs found
-
-These are reliability issues rather than confirmed vulnerabilities:
-
-- Startup initialization previously ran without an error-handling boundary. Initialization failures are now surfaced in the status message.
-- Concurrent rescans could interleave. A semaphore now serializes scans.
-- Git failures were previously converted to empty output. Failures now remain visible to the UI.
-- Equivalent root paths can still be improved with canonical identity checks for relative-path and alias cases.
-
-## Dependency and legal review
-
-The repository declares Avalonia, CommunityToolkit.Mvvm, Microsoft.Data.Sqlite, Microsoft.Extensions packages, and xUnit packages. No dependency was identified as obviously unsafe from the manifests alone. A release still requires:
-
-- `dotnet list package --vulnerable`;
-- lockfile/assets review;
-- dependency license inventory;
-- GitHub Actions and Dependabot review;
-- secret scanning;
-- static analysis;
-- regression tests for Git process isolation and path containment.
-
-The repository is licensed under MIT. `LEGAL.md` records the requirement to ship applicable third-party notices and to review platform redistribution and privacy obligations before distributing installers.
-
-## Validation limits
-
-`git diff --check` passed. Full restore, build, and test execution could not be performed in this environment because the .NET SDK is unavailable. The fixes therefore require CI validation before release.
+The Windows portable preview is unsigned. A production release still needs signing, broader accessibility/performance evaluation, platform testing, and ongoing dependency/license review. No telemetry, account subsystem, remote service, or project-command execution is implemented.

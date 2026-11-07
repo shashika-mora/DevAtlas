@@ -11,7 +11,10 @@ public sealed record Project(
     string? CurrentBranch = null,
     int ChangedFileCount = 0,
     DateTimeOffset? LastWorkedAt = null,
-    bool IsFavorite = false);
+    bool IsFavorite = false,
+    DateTimeOffset? LastScannedAt = null,
+    string? GitError = null,
+    bool IsAvailable = true);
 
 public sealed record ProjectTechnology(string Name, string Category);
 

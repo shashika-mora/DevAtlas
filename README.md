@@ -4,18 +4,37 @@ Offline-first developer workspace manager for discovering local projects, tracki
 
 DevAtlas is designed to remain useful without an account, an API key, a mandatory cloud service, or generative AI. Repository contents and DevAtlas-owned metadata stay on the local machine. Network access is reserved for explicitly requested operations such as Git fetch, pull, push, clone, and application updates.
 
-## Current vertical slice
+## Version 0.1.0 preview
 
 The repository contains a .NET 10 solution split into domain, application, infrastructure, desktop UI, and test projects. The initial slice provides:
 
-- Avalonia desktop shell with offline-first navigation and dashboard
-- SQLite persistence for workspace roots and discovered projects
-- asynchronous, cancellable filesystem discovery with common directory exclusions
-- project technology detection for Node.js, Java, Rust, Python, Go, PHP, and Docker signals
+- Avalonia dashboard with a virtualized project list, persistent status messages, and Git details
+- versioned SQLite persistence with stable project identity and retained favorites
+- background discovery, progress, cancellation, and exclusions for dependency, build, Git, and virtual-environment folders
+- project technology detection for .NET, Node.js, Java/Kotlin, Rust, Python, Go, PHP, and Docker signals
 - local Git branch, status, changed-file, and recent-commit inspection
-- project search, modified-file indicators, and workspace rescanning
+- project search, favorites, changed-file indicators, workspace rescanning, and root remove/ignore controls
+- conservative handling of inaccessible roots and recoverable metadata for projects that disappear and return
 
-The app stores its database under the platform local application-data directory in `DevAtlas/devatlas.db`. It does not upload repository contents or execute detected commands automatically.
+The app stores its database under the platform local application-data directory in `DevAtlas/devatlas.db` (normally `%LOCALAPPDATA%\DevAtlas` on Windows). It does not upload repository contents or execute detected commands automatically. Removing or ignoring a root changes DevAtlas metadata only. Projects missing from a completed scan are hidden; saved favorites and identity are retained if they return. Incomplete scans retain existing projects and show warnings.
+
+## Download and run
+
+Get the Windows x64 portable ZIP from [GitHub Releases](https://github.com/shashika-mora/DevAtlas/releases). Extract the **entire folder** and run `DevAtlas.App.exe`. The package includes the .NET runtime; Git must be installed separately for repository details. This first preview is unsigned and has no installer or automatic updater.
+
+Compare the ZIP's SHA-256 with `SHA256SUMS.txt` on the release:
+
+```powershell
+Get-FileHash .\DevAtlas-0.1.0-win-x64.zip -Algorithm SHA256
+```
+
+Processes, ports, runtime management, command execution, and session restoration remain roadmap features. The preview supports read-only discovery and Git inspection.
+
+## Local data and recovery
+
+Close DevAtlas before copying its entire data directory for a backup. The database uses SQLite WAL; copy the whole directory together rather than copying an open database alone. Version 0.1.0 upgrades the original schema transactionally and preserves existing project IDs and favorites. Databases from a newer schema are rejected without schema changes.
+
+For a separate data profile, set `DEVATLAS_DATA_DIRECTORY` to an absolute folder path before launch. Local diagnostics rotate after 1 MiB and record operation/error types without Git output, exception messages, environment variables, or repository contents. No logs are uploaded.
 
 ## Prerequisites
 
@@ -89,13 +108,23 @@ docs/
 
 ## Architecture
 
-`DevAtlas.Domain` contains persistence-independent models. `DevAtlas.Application` defines use-case boundaries. `DevAtlas.Infrastructure` implements SQLite, filesystem discovery, and safe Git process inspection. `DevAtlas.App` owns Avalonia presentation and dependency composition. OS-specific services can be added behind the application abstractions as the product grows.
+`DevAtlas.Domain` contains persistence-independent models. `DevAtlas.Application` defines boundaries and coordinates scans, bounded Git inspection, identity preservation, and reconciliation. `DevAtlas.Infrastructure` implements SQLite, filesystem discovery, and safe Git process inspection. `DevAtlas.App` owns Avalonia presentation and dependency composition. OS-specific services can be added behind the application abstractions as the product grows.
 
 ## Security and privacy
 
 Treat repositories as untrusted content. DevAtlas does not execute detected package scripts, Makefiles, shell scripts, or Docker commands automatically. Git inspection uses a sanitized configuration and environment, and discovery does not follow filesystem reparse points such as junctions or symbolic links.
 
 The application scans only workspace roots explicitly selected by the user. It stores local project metadata, activity, and settings on the device and does not provide telemetry or upload repository contents. See [`SECURITY.md`](SECURITY.md) and [`SECURITY-REVIEW.md`](SECURITY-REVIEW.md) for requirements, findings, and release gates.
+
+## Build a portable release
+
+With PowerShell 7, Python 3, and the .NET 10 SDK installed:
+
+```powershell
+./eng/Publish-Release.ps1
+```
+
+Use `-OutputDirectory artifacts/release-check-2` for another build. Existing artifact directories are never overwritten. Packaging generates a self-contained Windows x64 ZIP, SHA-256 checksums, a resolved dependency inventory, original package notices, and hashes for packaged files. Test/build checks should pass before publishing. See [release validation](docs/RELEASE-0.1.0.md).
 
 ## Contributing
 

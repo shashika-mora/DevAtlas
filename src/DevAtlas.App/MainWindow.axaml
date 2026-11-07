@@ -1,80 +1,120 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="DevAtlas.App.MainWindow"
-        Width="1180" Height="760" MinWidth="900" MinHeight="600"
-        Title="DevAtlas">
-  <Grid ColumnDefinitions="240,*" Background="#111827">
-    <Border Grid.Column="0" Background="#0B1220" Padding="24">
-      <StackPanel Spacing="8">
-        <TextBlock Text="DEVATLAS" FontSize="22" FontWeight="Bold" Foreground="#F8FAFC" Margin="0,0,0,28"/>
-        <Button Content="Home" HorizontalContentAlignment="Left" Classes="nav"/>
-        <Button Content="Projects" HorizontalContentAlignment="Left" Classes="nav"/>
-        <Button Content="Processes" HorizontalContentAlignment="Left" Classes="nav"/>
-        <Button Content="Ports" HorizontalContentAlignment="Left" Classes="nav"/>
-        <Button Content="Environments" HorizontalContentAlignment="Left" Classes="nav"/>
-        <Button Content="Activity" HorizontalContentAlignment="Left" Classes="nav"/>
-        <Button Content="Settings" HorizontalContentAlignment="Left" Classes="nav" Margin="0,20,0,0"/>
-        <Border Height="1" Background="#263246" Margin="0,16"/>
-        <TextBlock Text="OFFLINE-FIRST" Foreground="#7DD3FC" FontSize="11" FontWeight="Bold"/>
-        <TextBlock Text="Your workspace stays on this device." Foreground="#94A3B8" TextWrapping="Wrap" FontSize="12"/>
-      </StackPanel>
-    </Border>
-    <ScrollViewer Grid.Column="1" Padding="42,36">
-      <StackPanel Spacing="24">
-        <Grid ColumnDefinitions="*,Auto">
-          <StackPanel>
-            <TextBlock Text="Workspace overview" FontSize="30" FontWeight="SemiBold" Foreground="#F8FAFC"/>
-            <TextBlock Text="Discover, understand, and resume your local development work." Foreground="#94A3B8" Margin="0,6,0,0"/>
-          </StackPanel>
-          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-            <Button Content="Add workspace root" Click="AddRoot_Click" Padding="18,10"/>
-            <Button Content="Rescan workspace" Command="{Binding RescanCommand}" Padding="18,10"/>
-          </StackPanel>
-        </Grid>
-        <Grid ColumnDefinitions="*,*,*,*">
-          <Border Background="#172033" CornerRadius="8" Padding="18" Margin="0,0,14,0">
-            <StackPanel><TextBlock Text="Projects" Foreground="#94A3B8"/><TextBlock Text="{Binding Projects.Count}" FontSize="28" FontWeight="Bold" Foreground="#F8FAFC"/></StackPanel>
-          </Border>
-          <Border Grid.Column="1" Background="#172033" CornerRadius="8" Padding="18" Margin="0,0,14,0">
-            <StackPanel><TextBlock Text="Modified" Foreground="#94A3B8"/><TextBlock Text="{Binding ModifiedCount}" FontSize="28" FontWeight="Bold" Foreground="#FBBF24"/></StackPanel>
-          </Border>
-          <Border Grid.Column="2" Background="#172033" CornerRadius="8" Padding="18" Margin="0,0,14,0">
-            <StackPanel><TextBlock Text="Workspace roots" Foreground="#94A3B8"/><TextBlock Text="{Binding Roots.Count}" FontSize="28" FontWeight="Bold" Foreground="#7DD3FC"/></StackPanel>
-          </Border>
-          <Border Grid.Column="3" Background="#172033" CornerRadius="8" Padding="18">
-            <StackPanel><TextBlock Text="Mode" Foreground="#94A3B8"/><TextBlock Text="Offline" FontSize="28" FontWeight="Bold" Foreground="#86EFAC"/></StackPanel>
-          </Border>
-        </Grid>
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Discovered projects" FontSize="20" FontWeight="SemiBold" Foreground="#F8FAFC"/>
-          <TextBox Grid.Column="1" Watermark="Search projects" Text="{Binding SearchText}" Width="220"/>
-        </Grid>
-        <ItemsControl ItemsSource="{Binding FilteredProjects}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <Border Background="#172033" CornerRadius="8" Padding="20" Margin="0,0,0,10">
-                <Grid ColumnDefinitions="*,Auto">
-                  <StackPanel Spacing="5">
-                    <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" Foreground="#F8FAFC"/>
-                    <TextBlock Text="{Binding Path}" Foreground="#94A3B8" FontSize="12"/>
-                    <StackPanel Orientation="Horizontal" Spacing="18" Margin="0,8,0,0">
-                      <TextBlock Text="{Binding ProjectType}" Foreground="#7DD3FC"/>
-                      <TextBlock Text="{Binding Language}" Foreground="#CBD5E1"/>
-                      <TextBlock Text="{Binding CurrentBranch, StringFormat='branch: {0}'}" Foreground="#CBD5E1"/>
-                    </StackPanel>
+        Width="1320" Height="840" MinWidth="1060" MinHeight="680" Title="DevAtlas">
+  <Grid ColumnDefinitions="270,*" Background="#101722">
+    <Border Background="#0B111B" Padding="20">
+      <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <StackPanel Spacing="6" Margin="0,0,0,26">
+          <TextBlock Text="DEVATLAS" FontSize="24" FontWeight="Bold" Foreground="#F1F5F9"/>
+          <TextBlock Text="Your local development atlas" Foreground="#94A3B8" FontSize="12"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Spacing="12">
+          <TextBlock Text="WORKSPACE ROOTS" Foreground="#7DD3FC" FontSize="11" FontWeight="Bold"/>
+          <Button Content="+ Add workspace root" Click="AddRoot_Click" IsEnabled="{Binding CanEdit}" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+        <ScrollViewer Grid.Row="2" Margin="0,16,0,0">
+          <ItemsControl ItemsSource="{Binding Roots}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Background="#172131" CornerRadius="6" Padding="12" Margin="0,0,0,10">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="{Binding Path}" TextWrapping="Wrap" Foreground="#E2E8F0" FontSize="12"/>
+                    <CheckBox Content="Ignore this root" IsChecked="{Binding IsIgnored, Mode=OneWay}"
+                              Command="{Binding $parent[Window].DataContext.ToggleRootCommand}" CommandParameter="{Binding}"
+                              IsEnabled="{Binding $parent[Window].DataContext.CanEdit}" FontSize="12"/>
+                    <Button Content="Remove root" Command="{Binding $parent[Window].DataContext.RemoveRootCommand}"
+                            CommandParameter="{Binding}" IsEnabled="{Binding $parent[Window].DataContext.CanEdit}" FontSize="12"/>
                   </StackPanel>
-                  <Border Grid.Column="1" Background="#422006" CornerRadius="12" Padding="10,5" IsVisible="{Binding HasChanges}">
-                    <TextBlock Text="{Binding ChangedFileCount, StringFormat='{}{0} modified'}" Foreground="#FBBF24"/>
-                  </Border>
-                </Grid>
-              </Border>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        <TextBlock Text="Add a workspace root to begin discovering local projects."
-                   Foreground="#94A3B8" IsVisible="{Binding HasNoProjects}"/>
-        <TextBlock Text="{Binding StatusMessage}" Foreground="#94A3B8" IsVisible="{Binding IsBusy}"/>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        <StackPanel Grid.Row="3" Spacing="6" Margin="0,20,0,0">
+          <TextBlock Text="OFFLINE · ON YOUR DEVICE" Foreground="#86EFAC" FontSize="10" FontWeight="Bold"/>
+          <TextBlock Text="{Binding VersionText}" Foreground="#94A3B8" FontSize="11"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="28">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="5">
+          <TextBlock Text="Workspace overview" FontSize="28" FontWeight="SemiBold" Foreground="#F8FAFC"/>
+          <TextBlock Text="Discover projects. Check changes. Pick up where you left off." Foreground="#94A3B8"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Content="Rescan" Command="{Binding RescanCommand}" IsEnabled="{Binding CanEdit}"/>
+          <Button Content="Cancel" Command="{Binding CancelScanCommand}" IsEnabled="{Binding IsBusy}"/>
+        </StackPanel>
+      </Grid>
+      <Border Grid.Row="1" Background="#172131" CornerRadius="8" Padding="18" Margin="0,24,0,20">
+        <Grid ColumnDefinitions="*,*,*">
+          <StackPanel><TextBlock Text="PROJECTS" Foreground="#94A3B8" FontSize="11"/><TextBlock Text="{Binding Projects.Count}" FontSize="28" Foreground="#F8FAFC"/></StackPanel>
+          <StackPanel Grid.Column="1"><TextBlock Text="WITH CHANGES" Foreground="#94A3B8" FontSize="11"/><TextBlock Text="{Binding ModifiedCount}" FontSize="28" Foreground="#FBBF24"/></StackPanel>
+          <StackPanel Grid.Column="2"><TextBlock Text="ROOTS" Foreground="#94A3B8" FontSize="11"/><TextBlock Text="{Binding Roots.Count}" FontSize="28" Foreground="#7DD3FC"/></StackPanel>
+        </Grid>
+      </Border>
+      <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+        <TextBox Watermark="Search name, path, or technology" Text="{Binding SearchText}" Margin="0,0,16,0"/>
+        <CheckBox Grid.Column="1" Content="Favorites only" IsChecked="{Binding FavoritesOnly}"/>
+      </Grid>
+      <Grid Grid.Row="3" ColumnDefinitions="5*,4*">
+        <Grid RowDefinitions="Auto,*" Margin="0,0,20,0">
+          <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,10">
+            <TextBlock Text="{Binding VisibleCount}" Foreground="#CBD5E1"/><TextBlock Text="projects shown" Foreground="#94A3B8"/>
+          </StackPanel>
+          <ListBox Grid.Row="1" ItemsSource="{Binding FilteredProjects}" SelectedItem="{Binding SelectedProject}" Background="Transparent"
+                   AutomationProperties.Name="Discovered projects" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Spacing="5" Margin="8,10">
+                  <TextBlock Text="{Binding Name}" FontSize="17" FontWeight="SemiBold" Foreground="#F1F5F9"/>
+                  <TextBlock Text="{Binding Path}" FontSize="11" Foreground="#94A3B8" TextTrimming="CharacterEllipsis"/>
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="{Binding ProjectType}" Foreground="#7DD3FC"/>
+                    <TextBlock Text="{Binding CurrentBranch}" Foreground="#CBD5E1"/>
+                    <TextBlock Text="{Binding ChangedFileCount, StringFormat='{}{0} changes'}" Foreground="#FBBF24" IsVisible="{Binding HasChanges}"/>
+                    <TextBlock Text="★" Foreground="#FBBF24" IsVisible="{Binding IsFavorite}"/>
+                  </StackPanel>
+                  <TextBlock Text="{Binding GitError}" Foreground="#FBBF24" FontSize="11" TextWrapping="Wrap"/>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+        <Border Grid.Column="1" Background="#172131" Padding="18" CornerRadius="8">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="12">
+              <TextBlock Text="PROJECT DETAILS" Foreground="#7DD3FC" FontSize="11" FontWeight="Bold"/>
+              <TextBlock Text="{Binding SelectedProject.Name}" FontSize="21" FontWeight="SemiBold" TextWrapping="Wrap"/>
+              <TextBlock Text="{Binding SelectedProject.Path}" FontSize="12" Foreground="#94A3B8" TextWrapping="Wrap"/>
+              <TextBlock Text="{Binding SelectedProject.Language}" Foreground="#CBD5E1"/>
+              <Button Content="{Binding SelectedProject.FavoriteLabel}" Command="{Binding ToggleFavoriteCommand}" IsVisible="{Binding HasSelection}" IsEnabled="{Binding CanEdit}"/>
+              <TextBlock Text="{Binding SelectedProject.LastScanned, StringFormat='Last scanned: {0}'}" Foreground="#94A3B8" FontSize="11"/>
+              <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoadingDetails}" Height="3"/>
+              <TextBlock Text="{Binding DetailsMessage}" Foreground="#CBD5E1" TextWrapping="Wrap"/>
+              <TextBlock Text="CHANGED FILES" Foreground="#94A3B8" FontSize="11" FontWeight="Bold"/>
+              <ItemsControl ItemsSource="{Binding SelectedGit.ChangedFiles}">
+                <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,5"/></DataTemplate></ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="RECENT COMMITS" Foreground="#94A3B8" FontSize="11" FontWeight="Bold"/>
+              <ItemsControl ItemsSource="{Binding SelectedGit.RecentCommits}">
+                <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Margin="0,0,0,6"/></DataTemplate></ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+      </Grid>
+      <StackPanel Grid.Row="4" Spacing="6" Margin="0,16,0,0">
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="3"/>
+        <TextBlock Text="{Binding StatusMessage}" Foreground="#CBD5E1" TextWrapping="Wrap"/>
+        <ScrollViewer MaxHeight="80">
+          <ItemsControl ItemsSource="{Binding Warnings}">
+            <ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="#FBBF24" TextWrapping="Wrap" FontSize="11"/></DataTemplate></ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
       </StackPanel>
-    </ScrollViewer>
+    </Grid>
   </Grid>
 </Window>

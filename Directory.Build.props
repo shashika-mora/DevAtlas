@@ -4,5 +4,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>latest</LangVersion>
+    <Version>0.1.0</Version>
+    <Authors>DevAtlas contributors</Authors>
+    <Product>DevAtlas</Product>
+    <RepositoryUrl>https://github.com/shashika-mora/DevAtlas</RepositoryUrl>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 </Project>

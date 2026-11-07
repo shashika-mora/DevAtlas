@@ -8,11 +8,7 @@ Human maintainers own product decisions, release approval, and the final interpr
 
 Before starting work, inspect the current branch, status, recent commits, open pull requests, and the relevant project documentation. Check the shared log for active work and known blockers. Avoid editing files that belong to another active change, and do not modify an open pull request unless its owner has asked for that work.
 
-Keep changes focused and use the repository's existing patterns. Use Conventional Commits with a short imperative subject. Include the required Copilot co-author trailer on commits made by an agent:
-
-```text
-Co-authored-by: Copilot App <223556219+Copilot@users.noreply.github.com>
-```
+Keep changes focused and use the repository's existing patterns. Use Conventional Commits with a short imperative subject. Use the configured Git author. Include a co-author trailer only when it accurately identifies an actual contributor; do not attribute every agent to a fixed tool identity.
 
 Do not rewrite, squash, or amend another contributor's commits. Before committing, inspect the diff and confirm that generated files, credentials, and unrelated changes are absent. Pull requests should state the behavior changed, validation performed, security or legal implications, and known limitations.
 

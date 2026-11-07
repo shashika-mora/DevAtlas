@@ -8,21 +8,22 @@ The roadmap is deliberately organized around usable milestones. Each milestone s
 
 ## Current status
 
-The repository currently contains the first discovery slice:
+Version 0.1.0 delivers the discovery preview:
 
 - .NET 10 solution with Domain, Application, Infrastructure, App, and Tests projects.
 - Avalonia desktop shell.
 - SQLite storage for workspace roots and discovered projects.
 - Asynchronous filesystem discovery with common directory exclusions.
-- Basic technology detection.
+- Marker-based technology detection including .NET and ordinary Git repositories.
 - Local Git branch, status, changed-file, and recent-commit inspection.
-- Dashboard search and rescanning.
+- Virtualized dashboard, search, favorites, root controls, Git details, progress, and cancellation.
+- Stable identity, metadata-preserving reconciliation, schema migration, regression tests, local diagnostics, and portable x64 packaging.
 
-Before expanding the feature set, the current solution must pass restore, build, and test checks on a machine with the .NET 10 SDK installed.
+Restore/build/test and release evidence are recorded in `RELEASE-0.1.0.md`. Continue treating preview validation separately from production readiness.
 
 ## Milestones
 
-### 0.1 — Discover
+### 0.1 â€” Discover
 
 - Stabilize the build, test, logging, and migration setup.
 - Finish workspace-root management, including remove, ignore, and rescan actions.
@@ -32,7 +33,7 @@ Before expanding the feature set, the current solution must pass restore, build,
 - Complete the read-only Git snapshot.
 - Add CI and release-quality documentation.
 
-### 0.2 — Understand
+### 0.2 â€” Understand
 
 - Detect installed developer tools and project runtime requirements.
 - Add project filters, sorting, favorites, tags, and archive state.
@@ -40,7 +41,7 @@ Before expanding the feature set, the current solution must pass restore, build,
 - Show project warnings without inventing an arbitrary health score.
 - Add notes and per-project preferences.
 
-### 0.3 — Run
+### 0.3 â€” Run
 
 - Persist detected and user-defined Run, Build, and Test commands.
 - Use structured executable/argument models instead of unsafe shell concatenation.
@@ -49,7 +50,7 @@ Before expanding the feature set, the current solution must pass restore, build,
 - Track processes launched by DevAtlas.
 - Add a basic listening-port viewer.
 
-### 0.4 — Resume
+### 0.4 â€” Resume
 
 - Add workspace sessions and a recovery view.
 - Show the last branch, Git changes, commands, runtime, ports, and DevAtlas-launched processes.
@@ -57,14 +58,14 @@ Before expanding the feature set, the current solution must pass restore, build,
 - Add Docker and Docker Compose detection and read-only visibility.
 - Make resuming explicit and user-controlled; do not restore arbitrary applications automatically.
 
-### 0.5 — Control
+### 0.5 â€” Control
 
 - Add safe Git mutations with confirmation: stage, unstage, commit, branch, checkout, and stash.
 - Add Docker Compose start, stop, restart, and logs.
 - Add richer process controls and environment matching.
 - Keep online Git operations visibly separate from offline functionality.
 
-### 1.0 — Ship
+### 1.0 â€” Ship
 
 - Windows installer and uninstall support.
 - Version metadata, application icon, About page, changelog, and release notes.
