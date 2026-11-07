@@ -4,6 +4,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\DevAtlas.App\DevAtlas.App.csproj" />
     <ProjectReference Include="..\..\src\DevAtlas.Infrastructure\DevAtlas.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\DevAtlas.Domain\DevAtlas.Domain.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

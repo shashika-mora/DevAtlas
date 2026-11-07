@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
   pull_request:
     branches: [main]
 
@@ -11,7 +11,11 @@ permissions:
 
 jobs:
   build-and-test:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -24,8 +28,44 @@ jobs:
       - name: Restore
         run: dotnet restore DevAtlas.sln
 
+      - name: Verify formatting
+        run: dotnet format DevAtlas.sln --verify-no-changes --no-restore
+
       - name: Build
         run: dotnet build DevAtlas.sln --no-restore --configuration Release
 
       - name: Test
         run: dotnet test DevAtlas.sln --no-build --configuration Release --logger trx
+
+      - name: Audit resolved dependencies
+        shell: pwsh
+        run: |
+          $audit = dotnet list DevAtlas.sln package --vulnerable --include-transitive --no-restore --format json
+          if ($LASTEXITCODE -ne 0) { throw "Dependency audit failed." }
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          $audit | Set-Content artifacts/dependency-audit.json
+          if (($audit -join "`n") -match '"vulnerabilities"\s*:') { throw "Known vulnerable dependencies found." }
+
+      - name: Package Windows preview
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./eng/Publish-Release.ps1 -OutputDirectory artifacts/ci-package
+
+      - name: Retain test and audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-${{ runner.os }}
+          path: |
+            tests/**/TestResults/*.trx
+            artifacts/dependency-audit.json
+
+      - name: Retain Windows package
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DevAtlas-win-x64
+          path: |
+            artifacts/ci-package/*.zip
+            artifacts/ci-package/DEPENDENCIES.json
+            artifacts/ci-package/SHA256SUMS.txt

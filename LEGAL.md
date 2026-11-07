@@ -27,3 +27,9 @@ The application may read files, process information, and Git metadata inside wor
 ## Release responsibility
 
 Maintainers are responsible for reviewing dependency licenses, platform redistribution requirements, installer terms, trademarks, and applicable privacy obligations before each public release. This document is an engineering record, not legal advice.
+
+## Portable preview artifacts
+
+`eng/Publish-Release.ps1` collects resolved NuGet metadata, original package license/notice files, package copyright and author fields, supplementary SPDX license text, and bundled .NET runtime notices into each ZIP. `DEPENDENCIES.json` distinguishes the build-only Avalonia.BuildServices task, whose assembly is not distributed. `FILE-HASHES.json` and `SHA256SUMS.txt` support artifact verification. Retain the complete package and its notices when redistributing it.
+
+This collection is a reproducible engineering inventory, not a legal certification. Native graphics libraries can carry additional third-party terms in their bundled notices; those files are preserved without filtering their contents.

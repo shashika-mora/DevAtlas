@@ -6,14 +6,7 @@ DevAtlas is a local desktop application that reads directories explicitly select
 
 ## Current review status
 
-A focused review of the current discovery and Git implementation identified two issues that must be addressed before a security-sensitive release:
-
-| Severity | Area | Status |
-|---|---|---|
-| High | Git inspection may honor repository-controlled Git helpers such as `core.fsmonitor` | Fixed in `14556b4` and hardened again in the current audit |
-| Medium | Discovery may follow directory links/reparse points outside the selected workspace root | Fixed in the current audit |
-
-No hardcoded credentials, repository-content uploads, or obvious network exfiltration were found in the reviewed code. This is not a security certification.
+The 0.1.0 review and regression evidence are recorded in `SECURITY-REVIEW.md` and `docs/RELEASE-0.1.0.md`. Git helper/environment isolation and directory-link boundaries have regression coverage. These controls do not provide an OS sandbox or a security certification.
 
 ## Security requirements
 

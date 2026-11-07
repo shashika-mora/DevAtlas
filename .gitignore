@@ -2,3 +2,11 @@
 !.workspace/
 !.workspace/README.md
 !.workspace/agent-log.md
+**/bin/
+**/obj/
+**/TestResults/
+.vs/
+.idea/
+artifacts/
+*.user
+*.suo
